@@ -1,7 +1,7 @@
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider'
 import moment, { Moment } from 'moment'
-import { ChangeEvent, ChangeEventHandler, EventHandler, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import TextField from '@mui/material/TextField';
 import { Divider } from '@mui/material'
@@ -18,12 +18,19 @@ const InitialRecord: DateTimeProps = {
     nightEnd: "",
 }
 
+interface ResultProps {
+    noonRestTime: number,
+    nightRestTime: number,
+    totalWorkingTime: number,
+}
+
 const Main = () => {
 
     const [startDate, setStartDate] = useState<Moment | null>(null);
     const [endDate, setEndDate] = useState<Moment | null>(null);
     const [totalDays, setTotalDays] = useState<number>(0);
     const [dateRecords, setDateRecords] = useState<DateTimeProps[]>([]);
+    const [results, setResults] = useState<ResultProps[]>([]);
 
     const populateRows = () => {
         let differenceDays = endDate?.diff(startDate, 'days');
@@ -34,21 +41,52 @@ const Main = () => {
     const updateRows = (event: ChangeEvent<HTMLInputElement>) => {
         const { value, name } = event.target;
         const [date, fieldName] = name.split("|");
-        console.log(date);
-        console.log(fieldName);
         const duplicateDateRecords = [...dateRecords];
         duplicateDateRecords.find((val) => val.date === date)![fieldName as keyof DateTimeProps] = value;
         setDateRecords(duplicateDateRecords);
     }
 
-    useEffect(() => {
-        // Set the default date for previous month
-        const setupDate = () => {
-            const startOfMonth = moment().clone().subtract(1, 'months').startOf('month');
-            const endOfMonth = moment().clone().subtract(1, 'months').endOf('month');
-            setStartDate(startOfMonth);
-            setEndDate(endOfMonth);
+    //Calculate the total time and resting time
+    const computeResult = () => {
+        const tempArray: ResultProps[] = [];
+        dateRecords.forEach((value) => {
+            const resultRecord: ResultProps = {
+                noonRestTime: calculateTime(value.morningEnd, value.noonStart),
+                nightRestTime: calculateTime(value.noonEnd, value.nightStart),
+                totalWorkingTime: calculateTime(value.morningStart, value.nightEnd)
+            }
+            tempArray.push(resultRecord);
+        })
+        setResults(tempArray);
+    }
+
+    const calculateTime = (startTime: string, endTime: string): number => {
+        let startArray = [startTime.substring(0, 2), startTime.substring(2)];
+        let endArray = [endTime.substring(0, 2), endTime.substring(2)];
+        let totalTime: number = 0;
+
+        // Exceed the next day -> add 24 hours
+        if (parseInt(endArray[0]) < 5) {
+            endArray[0] = (24 + parseInt(endArray[0])).toString();
         }
+
+        // Minutes not enough + 60 minutes
+        if (endArray[1] < startArray[1]) {
+            let numOfHours = parseInt(endArray[0]) - 1 - parseInt(startArray[0]);
+            let numOfMins = parseInt(endArray[1]) + 60 - parseInt(startArray[1]);
+            totalTime = numOfHours * 60 + numOfMins;
+        }
+        else {
+            // Normal Use case
+            let numOfHours = parseInt(endArray[0]) - parseInt(startArray[0]);
+            let numOfMins = parseInt(endArray[1]) - parseInt(startArray[1]);
+            totalTime = numOfHours * 60 + numOfMins;
+        }
+
+        return totalTime;
+    }
+
+    useEffect(() => {
 
         // Setup All the rows initially based on number of days
         const setupRows = () => {
@@ -59,6 +97,18 @@ const Main = () => {
                     blankRecords.push(newRow);
                 }
                 setDateRecords(blankRecords);
+            }
+        }
+
+        // Set the default date for previous month 
+        //Run Once will do
+        //Todo Need to Fix the run multiple times for this function 
+        const setupDate = () => {
+            if (totalDays === 0) {
+                const startOfMonth = moment().clone().subtract(1, 'months').startOf('month');
+                const endOfMonth = moment().clone().subtract(1, 'months').endOf('month');
+                setStartDate(startOfMonth);
+                setEndDate(endOfMonth);
             }
         }
 
@@ -97,7 +147,7 @@ const Main = () => {
                     <button className="bg-green-500 hover:bg-green-700 px-5 py-2.5 text-sm leading-5 rounded-md font-semibold text-white h-12 w-full" onClick={populateRows}>Generate</button>
                 </div>
                 <div className=' w-1/6 my-2'>
-                    <button className="bg-sky-600 hover:bg-sky-700 px-5 py-2.5 text-sm leading-5 rounded-md font-semibold text-white h-12 w-full">Proceed</button>
+                    <button className="bg-sky-600 hover:bg-sky-700 px-5 py-2.5 text-sm leading-5 rounded-md font-semibold text-white h-12 w-full" onClick={computeResult}>Proceed</button>
                 </div>
             </div>
             <Divider />
