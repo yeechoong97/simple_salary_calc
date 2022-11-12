@@ -26,15 +26,20 @@ interface ResultProps {
 
 const Main = () => {
 
-    const [startDate, setStartDate] = useState<Moment | null>(null);
-    const [endDate, setEndDate] = useState<Moment | null>(null);
+    const startOfMonth = moment().clone().subtract(1, 'months').startOf('month');
+    const endOfMonth = moment().clone().subtract(1, 'months').endOf('month');
+    const [startDate, setStartDate] = useState<Moment | null>(startOfMonth);
+    const [endDate, setEndDate] = useState<Moment | null>(endOfMonth);
     const [totalDays, setTotalDays] = useState<number>(0);
     const [dateRecords, setDateRecords] = useState<DateTimeProps[]>([]);
     const [results, setResults] = useState<ResultProps[]>([]);
 
     const populateRows = () => {
+        console.log(startDate);
+        console.log(endDate);
         let differenceDays = endDate?.diff(startDate, 'days');
-        setTotalDays(differenceDays! + 1);
+        if (differenceDays !== totalDays)
+            setTotalDays(differenceDays! + 1);
     }
 
     // Update the state of rows
@@ -82,7 +87,6 @@ const Main = () => {
             let numOfMins = parseInt(endArray[1]) - parseInt(startArray[1]);
             totalTime = numOfHours * 60 + numOfMins;
         }
-
         return totalTime;
     }
 
@@ -93,30 +97,17 @@ const Main = () => {
             if (totalDays !== 0) {
                 const blankRecords: DateTimeProps[] = [];
                 for (let i = 0; i < totalDays; i++) {
-                    let newRow = { ...InitialRecord, date: startDate!.add(i === 0 ? 0 : 1, "day").format("DD/MM/YYYY") };
+                    let tempStartDate: Moment = moment(startDate);
+                    let newRow = { ...InitialRecord, date: tempStartDate.add(i === 0 ? 0 : i, "day").format("DD/MM/YYYY") };
                     blankRecords.push(newRow);
                 }
                 setDateRecords(blankRecords);
             }
         }
 
-        // Set the default date for previous month 
-        //Run Once will do
-        //Todo Need to Fix the run multiple times for this function 
-        const setupDate = () => {
-            if (totalDays === 0) {
-                const startOfMonth = moment().clone().subtract(1, 'months').startOf('month');
-                const endOfMonth = moment().clone().subtract(1, 'months').endOf('month');
-                setStartDate(startOfMonth);
-                setEndDate(endOfMonth);
-            }
-        }
-
         // Setup the input rows
         setupRows();
 
-        // Clean the function after used it
-        return () => setupDate()
     }, [totalDays])
 
     return (

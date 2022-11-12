@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, FunctionComponent } from 'react'
+import { ChangeEventHandler, FunctionComponent } from 'react'
 
 interface ActionProps {
     setAction?: ChangeEventHandler<HTMLInputElement>,
