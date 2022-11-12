@@ -6,7 +6,8 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import TextField from '@mui/material/TextField';
 import { Divider } from '@mui/material'
 import Header from '../components/Header'
-import TextBox, { DateTimeProps } from '../components/TextBox';
+import TextBox from '../components/TextBox';
+import { DateTimeProps, ResultProps } from '../interfaces';
 
 const InitialRecord: DateTimeProps = {
     date: "",
@@ -18,12 +19,6 @@ const InitialRecord: DateTimeProps = {
     nightEnd: "",
 }
 
-interface ResultProps {
-    noonRestTime: number,
-    nightRestTime: number,
-    totalWorkingTime: number,
-}
-
 const Main = () => {
 
     const startOfMonth = moment().clone().subtract(1, 'months').startOf('month');
@@ -32,11 +27,8 @@ const Main = () => {
     const [endDate, setEndDate] = useState<Moment | null>(endOfMonth);
     const [totalDays, setTotalDays] = useState<number>(0);
     const [dateRecords, setDateRecords] = useState<DateTimeProps[]>([]);
-    const [results, setResults] = useState<ResultProps[]>([]);
 
     const populateRows = () => {
-        console.log(startDate);
-        console.log(endDate);
         let differenceDays = endDate?.diff(startDate, 'days');
         if (differenceDays !== totalDays)
             setTotalDays(differenceDays! + 1);
@@ -62,7 +54,9 @@ const Main = () => {
             }
             tempArray.push(resultRecord);
         })
-        setResults(tempArray);
+        const jsonData = JSON.stringify(tempArray);
+        window.sessionStorage.setItem("result", jsonData);
+        window.open('/records', '_blank');
     }
 
     const calculateTime = (startTime: string, endTime: string): number => {

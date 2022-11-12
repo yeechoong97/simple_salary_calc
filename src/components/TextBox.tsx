@@ -1,21 +1,5 @@
-import { ChangeEventHandler, FunctionComponent } from 'react'
-
-interface ActionProps {
-    setAction?: ChangeEventHandler<HTMLInputElement>,
-}
-
-export interface DateTimeProps {
-    date: string,
-    morningStart: string,
-    morningEnd: string,
-    noonStart: string,
-    noonEnd: string,
-    nightStart: string,
-    nightEnd: string,
-}
-
-interface TimeInputProps extends ActionProps, DateTimeProps { }
-
+import { FunctionComponent } from 'react'
+import { TimeInputProps } from '../interfaces';
 
 
 const TextBox: FunctionComponent<TimeInputProps> = (props) => {
