@@ -1,66 +1,158 @@
-const Records = () => {
+import moment from "moment";
+import { useEffect, useState } from "react";
+import { EmployeeProps, ResultProps } from "../interfaces";
 
-    const data = window.sessionStorage.getItem("result");
-    console.log(JSON.parse(data!));
-    //Todo Put a summary of total and a full details below of the summary
+const InitialData: EmployeeProps = {
+    startDate: "",
+    endDate: "",
+    name: "",
+}
+
+const Records = () => {
+    const [data, setData] = useState<ResultProps[]>([]);
+    const [employee, setEmployee] = useState<EmployeeProps>(InitialData);
+    const currentDate = moment().format("MMMM Do YYYY, h:mm:ss a");
+
+    useEffect(() => {
+        const populateData = () => {
+            // Handle the result
+            const sessionData = window.sessionStorage.getItem("result");
+            const parsedData: ResultProps[] = JSON.parse(sessionData!);
+            setData(parsedData);
+
+            // Handle Employee Data
+            const empSessionData = window.sessionStorage.getItem("employee");
+            const parsedEmpData: EmployeeProps = JSON.parse(empSessionData!);
+            setEmployee(parsedEmpData);
+        }
+
+        return () => populateData();
+    }, []);
+
+    const changeTimeFormat = (time: number): string => {
+        let hours = parseInt((time / 60).toString());
+        let minutes = time - (hours * 60);
+        let outputFormatter = "";
+
+        if (time === 0) {
+            outputFormatter = "-";
+        }
+        else if (hours < 1) {
+            outputFormatter = `${minutes} Min${minutes > 1 ? 's' : ''}`;
+        }
+        else {
+            outputFormatter = `${hours} Hour${hours > 1 ? 's' : ''} ${minutes} Min${minutes > 1 ? 's' : ''}`
+        }
+        return outputFormatter;
+    }
+
     return (
-        <div className="flex flex-col space-y-3 pt-5">
-            <div className="flex px-10 mt-5 space-x-5 text-lg">
+        <div className="flex flex-col space-y-3">
+            <div className="flex px-14 mt-5 space-x-5 text-base">
                 <span className="w-28">Name: </span>
-                <span>SEE YEE CHOONG</span>
+                <span>{employee.name}</span>
             </div>
-            <div className="flex px-10  space-x-5 text-lg">
+            <div className="flex px-14  space-x-5 text-base">
                 <span className="w-28">Start Date: </span>
-                <span>1/11/2022</span>
+                <span>{employee.startDate}</span>
             </div>
-            <div className="flex px-10 space-x-5 text-lg">
+            <div className="flex px-14 space-x-5 text-base">
                 <span className="w-28">End Date: </span>
-                <span>11/11/2022</span>
+                <span>{employee.endDate}</span>
             </div>
-            <div className="flex px-10 space-x-5 text-lg">
+            <div className="flex px-14 space-x-5 text-base">
                 <span className="w-28">Date Time: </span>
-                <span>11/11/2022 11:23 PM</span>
+                <span>{currentDate}</span>
             </div>
-            <div className='w-full overflow-x-auto rounded-tr-lg px-10 py-10'>
+
+            {/* Summary */}
+            <div className='w-full overflow-x-auto rounded-tr-lg px-14 pb-5 pt-2'>
                 <table className="w-full text-sm text-left text-slate-600 table-auto border">
-                    <thead className=" text-slate-700 uppercase bg-slate-100 border-b sticky top-0">
+                    <thead className=" text-slate-700 uppercase  border-b sticky top-0">
+                        <tr className='divide-x'>
+                            <th scope="col" className="py-2 px-3">
+                                Total Working
+                            </th>
+                            <th scope="col" className="py-2 px-3">
+                                Total Lunch Break
+                            </th>
+                            <th scope="col" className="py-2 px-3">
+                                Total Dinner Break
+                            </th>
+                            <th scope="col" className="py-2 px-3">
+                                Net Working
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr className="bg-white border-b  divide-x ">
+                            <td className="py-2 px-3">
+                                {changeTimeFormat(data.reduce((prev, curr) =>
+                                    prev + curr.totalWorkingTime, 0
+                                ))}
+                            </td>
+                            <td className="py-2 px-3">
+                                {changeTimeFormat(data.reduce((prev, curr) =>
+                                    prev + curr.noonRestTime, 0
+                                ))}
+                            </td>
+                            <td className="py-2 px-3">
+                                {changeTimeFormat(data.reduce((prev, curr) =>
+                                    prev + curr.nightRestTime, 0
+                                ))}
+                            </td>
+                            <td className="py-2 px-3">
+                                {changeTimeFormat(data.reduce((prev, curr) =>
+                                    prev + (curr.totalWorkingTime - curr.noonRestTime - curr.nightRestTime), 0
+                                ))}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Result */}
+            <div className='w-full overflow-x-auto rounded-tr-lg px-14'>
+                <table className="w-full text-sm text-left text-slate-600 table-auto border">
+                    <thead className=" text-slate-700 uppercase  border-b sticky top-0">
                         <tr className='divide-x'>
                             <th scope="col" className="py-2 px-3">
                                 Date
                             </th>
                             <th scope="col" className="py-2 px-3">
-                                Total Working Duration
+                                Total Working
                             </th>
                             <th scope="col" className="py-2 px-3">
-                                Lunch Break Duration
+                                Lunch Break
                             </th>
                             <th scope="col" className="py-2 px-3">
-                                Dinner Break Duration
+                                Dinner Break
                             </th>
                             <th scope="col" className="py-2 px-3">
-                                Net Working Duration
+                                Net Working
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-
-                        <tr className="bg-white border-b hover:bg-slate-200 hover:cursor-pointer divide-x hover:divide-slate-300 hover:border-slate-300 hover:border-t hover:border-r">
-                            <td className="py-3 px-3">
-                                11/11/2022
-                            </td>
-                            <td className="py-3 px-3">
-                                3000
-                            </td>
-                            <td className="py-3 px-3">
-                                200
-                            </td>
-                            <td className="py-3 px-3">
-                                300
-                            </td>
-                            <td className="py-3 px-3">
-                                2001
-                            </td>
-                        </tr>
+                        {data?.map(value => (
+                            <tr className="bg-white border-b  divide-x ">
+                                <td className="py-2 px-3">
+                                    {value.date}
+                                </td>
+                                <td className="py-2 px-3">
+                                    {changeTimeFormat(value.totalWorkingTime)}
+                                </td>
+                                <td className="py-2 px-3">
+                                    {changeTimeFormat(value.noonRestTime)}
+                                </td>
+                                <td className="py-2 px-3">
+                                    {changeTimeFormat(value.nightRestTime)}
+                                </td>
+                                <td className="py-2 px-3">
+                                    {changeTimeFormat(value.totalWorkingTime - value.noonRestTime - value.nightRestTime)}
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

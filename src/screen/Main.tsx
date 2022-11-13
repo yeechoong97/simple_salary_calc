@@ -7,7 +7,7 @@ import TextField from '@mui/material/TextField';
 import { Divider } from '@mui/material'
 import Header from '../components/Header'
 import TextBox from '../components/TextBox';
-import { DateTimeProps, ResultProps } from '../interfaces';
+import { DateTimeProps, EmployeeProps, ResultProps } from '../interfaces';
 
 const InitialRecord: DateTimeProps = {
     date: "",
@@ -27,6 +27,7 @@ const Main = () => {
     const [endDate, setEndDate] = useState<Moment | null>(endOfMonth);
     const [totalDays, setTotalDays] = useState<number>(0);
     const [dateRecords, setDateRecords] = useState<DateTimeProps[]>([]);
+    const [name, setName] = useState("");
 
     const populateRows = () => {
         let differenceDays = endDate?.diff(startDate, 'days');
@@ -43,19 +44,33 @@ const Main = () => {
         setDateRecords(duplicateDateRecords);
     }
 
+    // Update Name
+    const updateName = (event: ChangeEvent<HTMLInputElement>) => {
+        setName(event.target.value);
+    }
+
     //Calculate the total time and resting time
     const computeResult = () => {
         const tempArray: ResultProps[] = [];
         dateRecords.forEach((value) => {
             const resultRecord: ResultProps = {
+                date: value.date,
                 noonRestTime: calculateTime(value.morningEnd, value.noonStart),
                 nightRestTime: calculateTime(value.noonEnd, value.nightStart),
                 totalWorkingTime: calculateTime(value.morningStart, value.nightEnd)
             }
             tempArray.push(resultRecord);
         })
+        const employeeData: EmployeeProps = {
+            startDate: moment(startDate!).format("MMMM Do YYYY"),
+            endDate: moment(endDate!).format("MMMM Do YYYY"),
+            name: name,
+        }
+
+        const jsonEmployeeData = JSON.stringify(employeeData);
         const jsonData = JSON.stringify(tempArray);
         window.sessionStorage.setItem("result", jsonData);
+        window.sessionStorage.setItem("employee", jsonEmployeeData);
         window.open('/records', '_blank');
     }
 
@@ -63,6 +78,10 @@ const Main = () => {
         let startArray = [startTime.substring(0, 2), startTime.substring(2)];
         let endArray = [endTime.substring(0, 2), endTime.substring(2)];
         let totalTime: number = 0;
+
+        if (startTime === "" || endTime === "") {
+            return 0;
+        }
 
         // Exceed the next day -> add 24 hours
         if (parseInt(endArray[0]) < 5) {
@@ -111,6 +130,8 @@ const Main = () => {
                     label="Name"
                     margin='dense'
                     className='w-1/2'
+                    value={name}
+                    onChange={updateName}
                 />
                 <LocalizationProvider dateAdapter={AdapterMoment}>
                     <DesktopDatePicker
