@@ -17,18 +17,16 @@ const Records = () => {
         const populateData = () => {
             // Handle the result
             const sessionData = window.sessionStorage.getItem("result");
-            console.log(sessionData);
             const parsedData: ResultProps[] = JSON.parse(sessionData!);
             setData(parsedData);
 
             // Handle Employee Data
             const empSessionData = window.sessionStorage.getItem("employee");
-            console.log(empSessionData);
             const parsedEmpData: EmployeeProps = JSON.parse(empSessionData!);
             setEmployee(parsedEmpData);
         }
 
-        return () => populateData();
+        populateData();
     }, []);
 
     const changeTimeFormat = (time: number): string => {
@@ -137,7 +135,7 @@ const Records = () => {
                     </thead>
                     <tbody>
                         {data?.map(value => (
-                            <tr className="bg-white border-b  divide-x ">
+                            <tr key={value.date} className="bg-white border-b  divide-x ">
                                 <td className="py-2 px-3">
                                     {value.date}
                                 </td>
