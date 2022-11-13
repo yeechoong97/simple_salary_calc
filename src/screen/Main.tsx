@@ -157,7 +157,7 @@ const Main = () => {
                 </div>
             </div>
             <Divider />
-            <div className='flex h-full w-screen space-y-3 flex-col overflow-auto pb-32'>
+            <div className='flex h-full w-full space-y-3 flex-col overflow-y-auto pb-32'>
                 <Header />
                 {
                     totalDays > 0 && dateRecords.map((date, index) => (
