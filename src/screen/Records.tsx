@@ -17,11 +17,13 @@ const Records = () => {
         const populateData = () => {
             // Handle the result
             const sessionData = window.sessionStorage.getItem("result");
+            console.log(sessionData);
             const parsedData: ResultProps[] = JSON.parse(sessionData!);
             setData(parsedData);
 
             // Handle Employee Data
             const empSessionData = window.sessionStorage.getItem("employee");
+            console.log(empSessionData);
             const parsedEmpData: EmployeeProps = JSON.parse(empSessionData!);
             setEmployee(parsedEmpData);
         }
